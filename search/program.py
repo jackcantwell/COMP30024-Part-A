@@ -8,6 +8,11 @@ import heapq
 def heuristic(board):
     return
 
+def find_initial_red(board):
+    for coord, state in board.items():
+        if state == CellState.RED:
+            return coord
+
 def search(
     board: dict[Coord, CellState]
 ) -> list[MoveAction] | None:
@@ -31,6 +36,7 @@ def search(
     # board state in a human-readable format. If your terminal supports ANSI
     # codes, set the `ansi` flag to True to print a colour-coded version!
     print(render_board(board, ansi=True))
+    
 
     # PLAN:
     # We need a priority queue for the search. Each time the node
@@ -55,7 +61,7 @@ def search(
 
 
     # So from start to finish: 
-    # Locate the initial position of the red frog
+    # Locate the initial position of the red frog (DONE)
     # Initialise the PQ
     # Add that initial position to the PQ with its value as
     # the total cost so far (0) plus the estimated heuristic (which always starts as
@@ -69,7 +75,12 @@ def search(
     #   if NOT visited, and chuck em in the PQ based on their cost (1) +
     # heuristic
 
+
+    # Our code:
+    initialRedPos = find_initial_red(board) 
     
+
+    # ignore this:
     return [
         MoveAction(Coord(0, 5), [Direction.Down]),
         MoveAction(Coord(1, 5), [Direction.DownLeft]),
