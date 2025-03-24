@@ -102,6 +102,9 @@ def search(
     # the red frog position, the board at that state, and the path to get there
     heapq.heappush(PQ, (initialCost, initialRedSteps, initialRedPos, 
                         board, initialPath))
+    
+    # Store the nodes visited to ignore duplicates
+    visited = set()
 
     # ignore this:
     return [
