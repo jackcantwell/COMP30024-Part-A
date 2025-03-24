@@ -4,7 +4,6 @@
 from .core import CellState, Coord, Direction, MoveAction
 from .utils import render_board
 
-
 def search(
     board: dict[Coord, CellState]
 ) -> list[MoveAction] | None:
@@ -29,15 +28,25 @@ def search(
     # codes, set the `ansi` flag to True to print a colour-coded version!
     print(render_board(board, ansi=True))
 
-    # Do some impressive AI stuff here to find the solution...
-    # ...
-    # ... (your solution goes here!)
-    # ...
+    # PLAN:
+    # We need a priority queue for the search. Each time the node
+    # is popped, we expand the possible solutions (there can only be 5 at most)
+    # and run them through the heuristic, then respectively place them in 
+    # the priority queue in order. the value is based on the amount of moves
+    # taken to get there + the shortest possible amount of moves that could
+    # result in a solution (aka if the frog hopped its way over frogs to the 
+    # bottom row)
 
-    # Here we're returning "hardcoded" actions as an example of the expected
-    # output format. Of course, you should instead return the result of your
-    # search algorithm. Remember: if no solution is possible for a given input,
-    # return `None` instead of a list.
+    # Implement PQ using min-heap?
+
+    # For every node in the PQ, we need to store: the board of that state, 
+    # the path it took to get there (as a list of MoveActions), the amount of 
+    # steps it took to get to that state, and the final A* cost 
+    # (which is the steps to get there  + the heuristic estimate to get
+    # to the goal)
+    # Note: the heuristic value doesn't actually need to be stored :P
+
+
     return [
         MoveAction(Coord(0, 5), [Direction.Down]),
         MoveAction(Coord(1, 5), [Direction.DownLeft]),
