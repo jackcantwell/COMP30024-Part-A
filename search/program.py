@@ -3,6 +3,10 @@
 
 from .core import CellState, Coord, Direction, MoveAction
 from .utils import render_board
+import heapq
+
+def heuristic(board):
+    return
 
 def search(
     board: dict[Coord, CellState]
@@ -40,13 +44,32 @@ def search(
     # Implement PQ using min-heap?
 
     # For every node in the PQ, we need to store: the board of that state, 
-    # the path it took to get there (as a list of MoveActions), the amount of 
-    # steps it took to get to that state, and the final A* cost 
+    # location of red, the path it took to get there (as a list of MoveActions), 
+    # the amount of steps it took to get to that state, and the final A* cost 
     # (which is the steps to get there  + the heuristic estimate to get
     # to the goal)
+
+    # Also need to store visited nodes, so they aren't re-visited 
+
     # Note: the heuristic value doesn't actually need to be stored :P
 
 
+    # So from start to finish: 
+    # Locate the initial position of the red frog
+    # Initialise the PQ
+    # Add that initial position to the PQ with its value as
+    # the total cost so far (0) plus the estimated heuristic (which always starts as
+    # 4) assuming a 8x8 grid
+    # Initialise the visited set
+    # Then while the PQ is not empty:
+    #   pop the first node from the PQ, 
+    #   is it the goal? if so END
+    #   add to visited set
+    #   expand all it's neighbours
+    #   if NOT visited, and chuck em in the PQ based on their cost (1) +
+    # heuristic
+
+    
     return [
         MoveAction(Coord(0, 5), [Direction.Down]),
         MoveAction(Coord(1, 5), [Direction.DownLeft]),
