@@ -4,9 +4,14 @@
 from .core import CellState, Coord, Direction, MoveAction
 from .utils import render_board
 import heapq
+import math
 
-def heuristic(board):
-    return
+# The heuristic used assumes the shortest possible path would be to consecutively
+# hop over blue monkeys all the way to the bottom row, this is an admissable
+# heuristic
+def heuristic(redRow, bottomRow):
+    return (math.ceil((bottomRow - redRow)/2))
+    
 
 def find_initial_red(board):
     for coord, state in board.items():
@@ -77,8 +82,26 @@ def search(
 
 
     # Our code:
+
+    # Find size of board (to determine the bottom row)
+    bottomRow = len(set(coord.r for coord in board)) - 1
+
+    # Initial key info about the red frog
     initialRedPos = find_initial_red(board) 
-    
+    initialRedSteps = 0
+    initialRedHeuristic = heuristic(initialRedPos.r, bottomRow)
+    initialCost = initialRedSteps + initialRedHeuristic
+    initialPath = []
+
+
+    # Initialise the Priority Queue (PQ)
+    PQ = []
+
+    # Python's heapq automatically organizes based on the first element which is the cost
+    # The PQ contains: the cost (steps + heuristic), the steps to get there,
+    # the red frog position, the board at that state, and the path to get there
+    heapq.heappush(PQ, (initialCost, initialRedSteps, initialRedPos, 
+                        board, initialPath))
 
     # ignore this:
     return [
