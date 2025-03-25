@@ -87,10 +87,10 @@ def search(
     bottomRow = len(set(coord.r for coord in board)) - 1
 
     # Initial key info about the red frog
-    initialRedPos = find_initial_red(board) 
-    initialRedSteps = 0
-    initialRedHeuristic = heuristic(initialRedPos.r, bottomRow)
-    initialCost = initialRedSteps + initialRedHeuristic
+    initialPos = find_initial_red(board) 
+    initialSteps = 0
+    initialHeuristic = heuristic(initialPos.r, bottomRow)
+    initialCost = initialSteps + initialHeuristic
     initialPath = []
 
 
@@ -100,11 +100,29 @@ def search(
     # Python's heapq automatically organizes based on the first element which is the cost
     # The PQ contains: the cost (steps + heuristic), the steps to get there,
     # the red frog position, the board at that state, and the path to get there
-    heapq.heappush(PQ, (initialCost, initialRedSteps, initialRedPos, 
+    heapq.heappush(PQ, (initialCost, initialSteps, initialPos, 
                         board, initialPath))
     
     # Store the nodes visited to ignore duplicates
-    visited = set()
+    # visited = set()
+
+    while PQ:
+        cost, steps, pos, board, path = heapq.heappop(PQ)
+        if is_goal(pos):
+            return path
+        
+        # For every neighbour, obtain the MoveAction, the future board,
+        # and the future position of the red frog
+        for move, nextBoard, nextPos in get_neighbours(board, pos):
+            # Increment step count, and calculate the new cost based on that step
+            # count and the estimated heuristic
+            nextSteps = steps + 1
+            nextCost = nextSteps + heuristic(nextPos)
+            heapq.heappush(PQ, (nextCost, nextSteps, nextPos, nextBoard, 
+                                path.append(move)))
+    # If PQ is empty it means no solution
+    return None
+
 
     # ignore this:
     return [
