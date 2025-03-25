@@ -12,8 +12,8 @@ DIRECTIONS = [Direction.Down, Direction.DownRight, Direction.DownLeft,
 # The heuristic used assumes the shortest possible path would be to consecutively
 # hop over blue monkeys all the way to the bottom row, this is an admissable
 # heuristic
-def heuristic(redRow, bottomRow):
-    return (math.ceil((bottomRow - redRow)/2))
+def heuristic(redRow, board):
+    return (math.ceil((getBottomRow(board) - redRow)/2))
     
 
 def find_initial_red(board):
@@ -21,9 +21,16 @@ def find_initial_red(board):
         if state == CellState.RED:
             return coord
 
-def is_goal(pos, bottomRow):
-    if pos.r == bottomRow:
+def is_goal(pos, board):
+    if pos.r == getBottomRow(board):
         return True
+    
+def getBottomRow(board):
+    return len(set(coord.r for coord in board)) - 1
+
+def getRightRow(board):
+    return len(set(coord.c for coord in board)) - 1
+
 
 def get_neighbours(board, pos):
 
@@ -43,9 +50,11 @@ def apply_move(board, pos, direction):
 
     if nextBoard[pos] == CellState.RED:
         del nextBoard[pos]
-
+    nextR = pos.r+direction.r
+    nextC = pos.c+direction.c
+    if not (0 <= nextR < getRightRow(nextBoard)) or not (0 <= nextC < getBottomRow(nextBoard)):  
+        return (None, None)
     nextPos = Coord(pos.r+direction.r, pos.c+direction.c)
-
     # print(nextPos.r, nextPos.c)
     # print(render_board(nextBoard, ansi=True))
 
@@ -132,13 +141,10 @@ def search(
 
     # Our code:
 
-    # Find size of board (to determine the bottom row)
-    bottomRow = len(set(coord.r for coord in board)) - 1
-
     # Initial key info about the red frog
     initialPos = find_initial_red(board) 
     initialSteps = 0
-    initialHeuristic = heuristic(initialPos.r, bottomRow)
+    initialHeuristic = heuristic(initialPos.r, board)
     initialCost = initialSteps + initialHeuristic
     initialPath = []
 
@@ -158,7 +164,7 @@ def search(
     while PQ:
         cost, steps, pos, board, path = heapq.heappop(PQ)
         print(f"cost: {cost}")
-        if is_goal(pos, bottomRow):
+        if is_goal(pos, board):
             return path
         
         # For every neighbour, obtain the MoveAction, the future board,
@@ -167,7 +173,7 @@ def search(
             # Increment step count, and calculate the new cost based on that step
             # count and the estimated heuristic
             nextSteps = steps + 1
-            nextCost = nextSteps + heuristic(nextPos.r, bottomRow)
+            nextCost = nextSteps + heuristic(nextPos.r, board)
             heapq.heappush(PQ, (nextCost, nextSteps, nextPos, nextBoard, 
                                 path + [move]))
     # If PQ is empty it means no solution
