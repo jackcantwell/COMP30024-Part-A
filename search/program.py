@@ -6,6 +6,9 @@ from .utils import render_board
 import heapq
 import math
 
+
+DIRECTIONS = [Direction.Down, Direction.DownRight, Direction.DownLeft,
+              Direction.Left, Direction.Right]
 # The heuristic used assumes the shortest possible path would be to consecutively
 # hop over blue monkeys all the way to the bottom row, this is an admissable
 # heuristic
@@ -17,6 +20,52 @@ def find_initial_red(board):
     for coord, state in board.items():
         if state == CellState.RED:
             return coord
+
+def is_goal(pos, bottomRow):
+    if pos.r == bottomRow:
+        return True
+
+def get_neighbours(board, pos):
+
+    # Contains a tuple of move, nextBoard, nextPos
+    neighbours = [] 
+    for direction in DIRECTIONS:
+            nextBoard, nextPos = apply_move(board, pos, direction)
+            move = MoveAction(pos, direction)
+            if nextBoard is not None and nextPos is not None:
+                neighbours.append((move, nextBoard, nextPos))
+                print(move, nextPos)
+                print(render_board(nextBoard, ansi=True))  
+    return neighbours
+
+def apply_move(board, pos, direction):
+    nextBoard = board.copy()
+
+    if nextBoard[pos] == CellState.RED:
+        del nextBoard[pos]
+
+    nextPos = Coord(pos.r+direction.r, pos.c+direction.c)
+
+    # print(nextPos.r, nextPos.c)
+    # print(render_board(nextBoard, ansi=True))
+
+
+    if nextPos not in nextBoard:
+        return (None, None)
+    
+    elif nextBoard[nextPos] == CellState.LILY_PAD:
+        nextBoard[nextPos] = CellState.RED
+        return (nextBoard, nextPos)
+    
+    elif nextBoard[nextPos] == CellState.BLUE:
+        # jumpPos = Coord(nextPos.r + direction.r, nextPos.c + direction.c)
+        
+        # if jumpPos in nextBoard and nextBoard[jumpPos] == CellState.LILY_PAD:
+        #     nextBoard[jumpPos] = CellState.RED
+        #     del nextBoard[nextPos]  # Remove the blue monkey
+        #     return (nextBoard, jumpPos)
+        if (pos not in nextBoard):
+            return apply_move(nextBoard, nextPos, direction)
 
 def search(
     board: dict[Coord, CellState]
@@ -108,7 +157,8 @@ def search(
 
     while PQ:
         cost, steps, pos, board, path = heapq.heappop(PQ)
-        if is_goal(pos):
+        print(f"cost: {cost}")
+        if is_goal(pos, bottomRow):
             return path
         
         # For every neighbour, obtain the MoveAction, the future board,
@@ -117,9 +167,9 @@ def search(
             # Increment step count, and calculate the new cost based on that step
             # count and the estimated heuristic
             nextSteps = steps + 1
-            nextCost = nextSteps + heuristic(nextPos)
+            nextCost = nextSteps + heuristic(nextPos.r, bottomRow)
             heapq.heappush(PQ, (nextCost, nextSteps, nextPos, nextBoard, 
-                                path.append(move)))
+                                path + [move]))
     # If PQ is empty it means no solution
     return None
 
