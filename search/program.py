@@ -6,9 +6,10 @@ from .utils import render_board
 import heapq
 import math
 
-
+# Possible directions that the red frog can move in
 DIRECTIONS = [Direction.Down, Direction.DownRight, Direction.DownLeft,
               Direction.Left, Direction.Right]
+
 # The heuristic used assumes the shortest possible path would be to consecutively
 # hop over blue monkeys all the way to the bottom row, this is an admissable
 # heuristic
@@ -16,64 +17,85 @@ def heuristic(redRow, board):
     return (math.ceil((getBottomRow(board) - redRow)/2))
     
 
+# Find the initial Coord of the red frog
 def find_initial_red(board):
     for coord, state in board.items():
         if state == CellState.RED:
             return coord
 
+# Check if the red frogs position is in the bottom row
 def is_goal(pos, board):
     if pos.r == getBottomRow(board):
         return True
     
+# Get the number of the bottom row based on the board size
 def getBottomRow(board):
     return len(set(coord.r for coord in board)) - 1
 
+# Get the number of the right row based on the board size
 def getRightRow(board):
     return len(set(coord.c for coord in board)) - 1
 
 
+# Obtain the possible future nodes based on the current node
+# Returns the move, the future board, and the future position of the red frog
 def get_neighbours(board, pos):
 
-    # Contains a tuple of move, nextBoard, nextPos
+    # Contains tuples of move, nextBoard, and nextPos
     neighbours = [] 
+
     for direction in DIRECTIONS:
             nextBoard, nextPos = apply_move(board, pos, direction)
             move = MoveAction(pos, direction)
+
+            # If the move is a valid move, add it as a possible neighbour
             if nextBoard is not None and nextPos is not None:
                 neighbours.append((move, nextBoard, nextPos))
-                print(move, nextPos)
-                print(render_board(nextBoard, ansi=True))  
+                # print(move, nextPos)
+                # print(render_board(nextBoard, ansi=True))  
     return neighbours
 
+# Attempts to move the red frog in the given direction
+# Either returns a None tuple if the move is invalid or a tuple of the next board 
+# and red frog position if the move is valid
 def apply_move(board, pos, direction):
     nextBoard = board.copy()
 
+    # The red frog is moving off the current pos, so delete the cell state
     if nextBoard[pos] == CellState.RED:
         del nextBoard[pos]
+
+    # Calculate the next position of the red frog
     nextR = pos.r+direction.r
     nextC = pos.c+direction.c
+
+    # Check if the future position is within the boundaries of the board
     if not (0 <= nextR < getRightRow(nextBoard)) or not (0 <= nextC < getBottomRow(nextBoard)):  
         return (None, None)
+    
+    # Wrap the next position in a coordinate (given it is valid)
     nextPos = Coord(pos.r+direction.r, pos.c+direction.c)
+
     # print(nextPos.r, nextPos.c)
     # print(render_board(nextBoard, ansi=True))
 
-
+    # Check if the next position is an empty CellState (e.g., not a lilypad nor blue frog)
     if nextPos not in nextBoard:
         return (None, None)
-    
+
+    # If the next position is a lilypad, it is a valid move
     elif nextBoard[nextPos] == CellState.LILY_PAD:
         nextBoard[nextPos] = CellState.RED
         return (nextBoard, nextPos)
     
+    # If the next position is a blue frog, check if the red frog can jump over it 
     elif nextBoard[nextPos] == CellState.BLUE:
-        # jumpPos = Coord(nextPos.r + direction.r, nextPos.c + direction.c)
-        
-        # if jumpPos in nextBoard and nextBoard[jumpPos] == CellState.LILY_PAD:
-        #     nextBoard[jumpPos] = CellState.RED
-        #     del nextBoard[nextPos]  # Remove the blue monkey
-        #     return (nextBoard, jumpPos)
+        # Check that we are in the spot where the red frog was removed
+        # and not just jumping over several blue frogs 
         if (pos not in nextBoard):
+            # Simply recall this function and check the CellState after the frog
+            # if there is a lilypad, it will just return that position, if not
+            # it returns None
             return apply_move(nextBoard, nextPos, direction)
 
 def search(
@@ -159,11 +181,14 @@ def search(
                         board, initialPath))
     
     # Store the nodes visited to ignore duplicates
+    # idk if this is needed maybe this is the problem
     # visited = set()
 
     while PQ:
+        # Expand the node, 
         cost, steps, pos, board, path = heapq.heappop(PQ)
-        print(f"cost: {cost}")
+
+        # Is this node at the bottom row?
         if is_goal(pos, board):
             return path
         
@@ -174,6 +199,8 @@ def search(
             # count and the estimated heuristic
             nextSteps = steps + 1
             nextCost = nextSteps + heuristic(nextPos.r, board)
+
+            # Add this to the PQ as generated nodes
             heapq.heappush(PQ, (nextCost, nextSteps, nextPos, nextBoard, 
                                 path + [move]))
     # If PQ is empty it means no solution
