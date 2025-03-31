@@ -6,6 +6,8 @@ from .utils import render_board
 import heapq
 import math
 
+BOARD_N = 8
+
 # Possible directions that the red frog can move in
 DIRECTIONS = [Direction.Down, Direction.DownRight, Direction.DownLeft,
               Direction.Right, Direction.Left]
@@ -14,7 +16,7 @@ DIRECTIONS = [Direction.Down, Direction.DownRight, Direction.DownLeft,
 # hop over blue monkeys all the way to the bottom row, this is an admissable
 # heuristic
 def heuristic(redRow, board):
-    return (math.ceil((getBottomRow(board) - redRow)/2))
+    return (math.ceil(((BOARD_N-1) - redRow)/2))
     
 
 # Find the initial Coord of the red frog
@@ -25,17 +27,8 @@ def find_initial_red(board):
 
 # Check if the red frogs position is in the bottom row
 def is_goal(pos, board):
-    if pos.r == getBottomRow(board):
+    if pos.r == (BOARD_N-1):
         return True
-    
-# Get the number of the bottom row based on the board size
-def getBottomRow(board):
-    return max(set(coord.r for coord in board))
-
-# Get the number of the right row based on the board size
-def getRightRow(board):
-    return max(set(coord.c for coord in board))
-
 
 # Obtain the possible future nodes based on the current node
 # Returns the move, the future board, and the future position of the red frog
@@ -71,7 +64,7 @@ def apply_move(board, pos, direction):
     nextC = pos.c+direction.c
 
     # Check if the future position is within the boundaries of the board
-    if not (0 <= nextR <= getRightRow(nextBoard)) or not (0 <= nextC <= getBottomRow(nextBoard)):  
+    if not (0 <= nextC <= (BOARD_N-1)) or not (0 <= nextR <= (BOARD_N-1)):  
         return (None, None)
     
     # Wrap the next position in a coordinate (given it is valid)
@@ -100,7 +93,8 @@ def apply_move(board, pos, direction):
             # it returns None
             #print("Blue Check")
             return apply_move(nextBoard, nextPos, direction)
-    return (None, None)
+        else:
+            return (None, None)
 
 def search(
     board: dict[Coord, CellState]
@@ -203,7 +197,7 @@ def search(
         cost, counter, steps, pos, board, path = heapq.heappop(PQ)
         #print(path)
         #print("CHOSEN OPTION")
-        print(render_board(board, ansi=True))
+        #print(render_board(board, ansi=True))
         
         # if the node being expanded has already been visited
         # no need to unnecessarily repeat steps.
@@ -219,6 +213,7 @@ def search(
         # For every neighbour, obtain the MoveAction, the future board,
         # and the future position of the red frog
         for move, nextBoard, nextPos in get_neighbours(board, pos):
+            print(nextPos)
             # Increment step count, and calculate the new cost based on that step
             # count and the estimated heuristic
             nextSteps = steps + 1
