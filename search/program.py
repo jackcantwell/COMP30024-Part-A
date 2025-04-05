@@ -47,6 +47,15 @@ def get_neighbours(board, pos):
             if nextBoard and nextPos:
                 move = MoveAction(pos, direction)
                 neighbours.append((move, nextBoard, nextPos))
+                # Check if the move we have just made is jumping over a blue
+                if ((nextPos.r-pos.r) > 1 or (nextPos.c - pos.c) > 1):
+                    # Check all possible neighbours after the hop
+                    multHops = get_neighbours(nextBoard, nextPos)
+                    for hopMove, hopNextBoard, hopNextPos in multHops:
+                        if ((hopNextPos.r - nextPos.r) > 1 or (hopNextPos.c - nextPos.c) > 1):
+                            newDirs = [x for x in move.directions]+[x for x in hopMove.directions]
+                            move = MoveAction(pos, newDirs)
+                            neighbours.append((move, hopNextBoard, hopNextPos))
                 
     return neighbours
 
@@ -88,6 +97,7 @@ def apply_move(board, pos, direction):
         if (pos not in nextBoard):
             # Recursively call this function, checking the cell on the "other side" of the blue frog
             # if there is a lilypad, it will return that position, if not, None
+
             return apply_move(nextBoard, nextPos, direction)
         else:
             return (None, None)
@@ -114,7 +124,7 @@ def search(
     # Prints out a board state in a human-readable format. ansi allows for colouring
     print(render_board(board, ansi=True))
     
-     # Our code:
+    # Our code:
 
     # Initial key info about the red frog
     initialPos = find_initial_red(board) 
@@ -166,8 +176,7 @@ def search(
             # Add this to the PQ as generated nodes
             nodeCounter += 1
             heapq.heappush(PQ, (nextCost, nodeCounter, nextSteps, nextPos, nextBoard, 
-                                path + [move]))
+                                path +[move]))
             
     # If PQ is empty it means no solution
     return None
-
