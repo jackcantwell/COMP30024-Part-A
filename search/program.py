@@ -138,7 +138,7 @@ def search(
     """
 
     # Prints out a board state in a human-readable format. ansi allows for colouring
-    print(render_board(board, ansi=True))
+    #print(render_board(board, ansi=True))
     
     # Our code:
 
@@ -180,7 +180,7 @@ def search(
 
         # Checks if the goal state has been met (check on expansion)
         if is_goal(pos, board):
-            print(render_board(board, ansi=True))
+            #print(render_board(board, ansi=True))
             return path
         
         # Iterates through potential moves, obtaining the result of making said move
