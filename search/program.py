@@ -15,8 +15,12 @@ DIRECTIONS = [Direction.Down, Direction.DownRight, Direction.DownLeft,
 
 # The heuristic used assumes the shortest possible path would be to consecutively
 # hop over blue monkeys all the way to the bottom row, this is admissable
-def heuristic(redRow, board):
-    return (math.ceil(((BOARD_N-1) - redRow)/2))
+def heuristic(redRow):
+    if (redRow % 2 == 0):
+        return 2
+    else: 
+        return 1
+    #return (math.ceil(((BOARD_N-1) - redRow)/2))
     
 
 # Find the initial coordinate of the red frog
@@ -49,10 +53,12 @@ def get_neighbours(board, pos):
                 neighbours.append((move, nextBoard, nextPos))
                 # Check if the move we have just made is jumping over a blue
                 if ((nextPos.r-pos.r) > 1 or (nextPos.c - pos.c) > 1):
-                    # Check all possible neighbours after the hop
+                    # Check all possible neighbours after the hop recursively
                     multHops = get_neighbours(nextBoard, nextPos)
                     for hopMove, hopNextBoard, hopNextPos in multHops:
+                        # Checks for valid subsequent moves - must be another "blue hop"
                         if ((hopNextPos.r - nextPos.r) > 1 or (hopNextPos.c - nextPos.c) > 1):
+                            # Combines the hop directions into one move
                             newDirs = [x for x in move.directions]+[x for x in hopMove.directions]
                             move = MoveAction(pos, newDirs)
                             neighbours.append((move, hopNextBoard, hopNextPos))
@@ -129,7 +135,7 @@ def search(
     # Initial key info about the red frog
     initialPos = find_initial_red(board) 
     initialSteps = 0
-    initialHeuristic = heuristic(initialPos.r, board)
+    initialHeuristic = heuristic(initialPos.r)
     initialCost = initialSteps + initialHeuristic
     initialPath = []
     nodeCounter = 1
@@ -171,7 +177,7 @@ def search(
             # Increment step count, and calculate the new cost based on that step
             # count and the estimated heuristic (steps have uniform cost)
             nextSteps = steps + 1
-            nextCost = nextSteps + heuristic(nextPos.r, board)
+            nextCost = nextSteps + heuristic(nextPos.r)
 
             # Add this to the PQ as generated nodes
             nodeCounter += 1
