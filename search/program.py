@@ -13,14 +13,17 @@ BOARD_N = 8
 DIRECTIONS = [Direction.Down, Direction.DownRight, Direction.DownLeft,
               Direction.Right, Direction.Left]
 
-# The heuristic used assumes the shortest possible path would be to consecutively
-# hop over blue monkeys all the way to the bottom row, this is admissable
+# In this problem, from any given node, we assume that the shortest path can
+# be achieved by consecutively hopping over blue frogs to the bottom row, which is considered
+# one move. We know that if the red frog is on an even row, it can only "hop" to row six
+# and then will still need at least one more move to reach the goal state. Whereas 
+# on an odd row there is a possibility that the red frog could "hop" directly to the goal state.
+# This is admissible. We prioritise even rows in our heuristic based on this logic.
 def heuristic(redRow):
     if (redRow % 2 == 0):
         return 2
     else: 
         return 1
-    #return (math.ceil(((BOARD_N-1) - redRow)/2))
     
 
 # Find the initial coordinate of the red frog
@@ -49,11 +52,15 @@ def get_neighbours(board, pos):
 
             # If the move is a move, add it as a possible neighbour
             if nextBoard and nextPos:
+
+                # Adds this move to neighbours assuming no futher hops
                 move = MoveAction(pos, direction)
                 neighbours.append((move, nextBoard, nextPos))
+
                 # Check if the move we have just made is jumping over a blue
                 if ((nextPos.r-pos.r) > 1 or (nextPos.c - pos.c) > 1):
-                    # Check all possible neighbours after the hop recursively
+                    # Check all further neighbours after the hop, recursively
+                    # There can be more than 2 hops
                     multHops = get_neighbours(nextBoard, nextPos)
                     for hopMove, hopNextBoard, hopNextPos in multHops:
                         # Checks for valid subsequent moves - must be another "blue hop"
@@ -61,6 +68,9 @@ def get_neighbours(board, pos):
                             # Combines the hop directions into one move
                             newDirs = [x for x in move.directions]+[x for x in hopMove.directions]
                             move = MoveAction(pos, newDirs)
+                            # Our apply_move method operates by moving the red frog
+                            # This ensures that we don't delete any lilypads which are along the hop path
+                            hopNextBoard[nextPos] = CellState.LILY_PAD
                             neighbours.append((move, hopNextBoard, hopNextPos))
                 
     return neighbours
@@ -170,6 +180,7 @@ def search(
 
         # Checks if the goal state has been met (check on expansion)
         if is_goal(pos, board):
+            print(render_board(board, ansi=True))
             return path
         
         # Iterates through potential moves, obtaining the result of making said move
